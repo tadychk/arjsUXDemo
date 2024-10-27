@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AR.js Zoom and Rotate Example</title>
+    <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
+    <script src="https://cdn.rawgit.com/jeromeetienne/ar.js/1.7.7/aframe/build/aframe-ar.js"></script>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+        }
+    </style>
+</head>
+<body>
+    <a-scene embedded arjs>
+        <!-- The custom pattern marker -->
+        <a-marker markerhandler emitevents="true" cursor="rayOrigin: mouse" id="star-marker" type='pattern' url="">
+            <!-- Object that will be animated and manipulated -->
+            <a-box id="boxObject" position="0 0.5 0" color="red" scale="0.5 0.5 0.5" class="clickable"></a-box>
+            <a-box position="0 0.5 0" scale="2 2 2" color="transparent" opacity="0.2" class="clickable"></a-box>
+        </a-marker>
+        <a-entity camera></a-entity>
+    </a-scene>
+
+    <script>
+        const boxObject = document.querySelector("#boxObject")
+        const boxColors = ["red", "blue", "green"];
+        let boxColorIndex = 0; // will be changed to effect the color of the box
+
+        // on lift, check if the object was clicked and change color if so
+        window.addEventListener("click", (event) => {
+            if (event.target == boxObject) {
+                // Increment the index to select the next color
+                boxColorIndex = (boxColorIndex + 1) % boxColors.length;
+                // Change the box color based on the index
+                boxObject.setAttribute("color", boxColors[boxColorIndex]);
+            }
+        });
+    </script>
+</body>
+</html>

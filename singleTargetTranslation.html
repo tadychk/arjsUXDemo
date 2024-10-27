@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AR.js Zoom and Rotate Example</title>
+    <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
+    <script src="https://cdn.rawgit.com/jeromeetienne/ar.js/1.7.7/aframe/build/aframe-ar.js"></script>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+        }
+    </style>
+</head>
+<body>
+    <!-- AR.js scene -->
+    <a-scene embedded arjs>
+        <!-- The custom pattern marker -->
+        <a-marker preset="hiro">
+            <!-- Object that will be animated and manipulated -->
+            <a-box id="animatedObject" position="0 0.5 0" color="red" scale="0.5 0.5 0.5"></a-box>
+        </a-marker>
+        <a-entity camera></a-entity>
+    </a-scene>
+
+    <script>
+        const object = document.querySelector("#animatedObject");
+
+        let isDragging = false;
+        let previousMousePosition = { x: 0, y: 0 };
+        let rotationSpeed = 0.5;
+        let zoomSpeed = 0.1;
+
+        // Mouse/touch event listeners for rotation
+        window.addEventListener("mousedown", (event) => {
+            isDragging = true;
+            previousMousePosition.x = event.clientX;
+            previousMousePosition.y = event.clientY;
+        });
+
+        window.addEventListener("mouseup", () => {
+            isDragging = false;
+        });
+
+        window.addEventListener("mousemove", (event) => {
+            if (isDragging) {
+                const deltaX = event.clientX - previousMousePosition.x;
+                const deltaY = event.clientY - previousMousePosition.y;
+
+                // Update the previous position for the next frame
+                previousMousePosition.x = event.clientX;
+                previousMousePosition.y = event.clientY;
+
+                // Rotate the object based on mouse movement
+                const objectRotation = object.getAttribute("rotation");
+                object.setAttribute("rotation", {
+                    x: objectRotation.x - deltaY * rotationSpeed,
+                    y: objectRotation.y + deltaX * rotationSpeed,
+                    z: objectRotation.z
+                });
+            }
+        });
+
+        // Zoom functionality using mouse wheel or touch
+        window.addEventListener("wheel", (event) => {
+            const scale = object.getAttribute("scale");
+            const zoomFactor = 1 + (event.deltaY > 0 ? -zoomSpeed : zoomSpeed);
+
+            // Adjust the scale (zoom in or out)
+            object.setAttribute("scale", {
+                x: scale.x * zoomFactor,
+                y: scale.y * zoomFactor,
+                z: scale.z * zoomFactor
+            });
+        });
+
+        // Touch event listeners for mobile zoom and rotate (pinch and drag)
+        let initialPinchDistance = null;
+
+        window.addEventListener("touchstart", (event) => {
+            if (event.touches.length === 2) {
+                initialPinchDistance = getPinchDistance(event);
+            }
+        });
+
+        window.addEventListener("touchmove", (event) => {
+            if (event.touches.length === 2 && initialPinchDistance) {
+                const pinchDistance = getPinchDistance(event);
+                const scale = object.getAttribute("scale");
+                const zoomFactor = pinchDistance / initialPinchDistance;
+
+                object.setAttribute("scale", {
+                    x: scale.x * zoomFactor,
+                    y: scale.y * zoomFactor,
+                    z: scale.z * zoomFactor
+                });
+
+                initialPinchDistance = pinchDistance; // Update pinch distance
+            } else if (event.touches.length === 1) {
+                const touch = event.touches[0];
+                if (!isDragging) {
+                    isDragging = true;
+                    previousMousePosition.x = touch.clientX;
+                    previousMousePosition.y = touch.clientY;
+                } else {
+                    const deltaX = touch.clientX - previousMousePosition.x;
+                    const deltaY = touch.clientY - previousMousePosition.y;
+
+                    previousMousePosition.x = touch.clientX;
+                    previousMousePosition.y = touch.clientY;
+
+                    const objectRotation = object.getAttribute("rotation");
+                    object.setAttribute("rotation", {
+                        x: objectRotation.x - deltaY * rotationSpeed,
+                        y: objectRotation.y + deltaX * rotationSpeed,
+                        z: objectRotation.z
+                    });
+                }
+            }
+        });
+
+        window.addEventListener("touchend", () => {
+            isDragging = false;
+            initialPinchDistance = null;
+        });
+
+        // Utility function to calculate pinch distance between two fingers
+        function getPinchDistance(event) {
+            const dx = event.touches[0].clientX - event.touches[1].clientX;
+            const dy = event.touches[0].clientY - event.touches[1].clientY;
+            return Math.sqrt(dx * dx + dy * dy);
+        }
+    </script>
+</body>
+</html>
