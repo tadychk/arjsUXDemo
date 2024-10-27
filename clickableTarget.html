@@ -16,25 +16,29 @@
 <body>
     <a-scene embedded arjs>
         <!-- The custom pattern marker -->
-        <a-marker id="star-marker" type='pattern' url="https://github.com/tadychk/arjsUXDemo/blob/ebb865eb58c2bf1e30dc77ccb42095bcf83b288b/pattern-Black_bordered_white_star.svg.patt">
-            <a-box id="boxObject" position="0 0.5 0" color="red" scale="0.5 0.5 0.5" class="clickable"></a-box>
-            <a-box position="0 0.5 0" scale="2 2 2" color="transparent" opacity="0.2" class="clickable"></a-box>
+        <a-marker markerhandler emitevents="true" cursor="rayOrigin: mouse" type="pattern" url="https://raw.githubusercontent.com/tadychk/arjsUXDemo/refs/heads/main/pattern-marker.patt" id="customMarker">
+            <a-box id="boxObject" position="0 0.5 0" color="red" scale="0.5 0.5 0.5" class="clickable" cursor-listener></a-box>
         </a-marker>
-        <a-entity camera></a-entity>
+        <a-entity camera>
+            <a-entity cursor="fuse: true; fuseTimeout: 500"
+                position="0 0 -1"
+                geometry="primitive: ring; radiusInner: 0.01; radiusOuter: 0.02"
+                material="color: black; shader: flat">
+            </a-entity>
+        </a-entity>
     </a-scene>
 
     <script>
-        const boxObject = document.querySelector("#boxObject")
-        const boxColors = ["red", "blue", "green"];
-        let boxColorIndex = 0; // will be changed to effect the color of the box
-
-        // on lift, check if the object was clicked and change color if so
-        window.addEventListener("click", (event) => {
-            if (event.target == boxObject) {
-                // Increment the index to select the next color
-                boxColorIndex = (boxColorIndex + 1) % boxColors.length;
-                // Change the box color based on the index
-                boxObject.setAttribute("color", boxColors[boxColorIndex]);
+        // Component to change to a sequential color on click.
+        AFRAME.registerComponent('cursor-listener', {
+            init: function () {
+                var lastIndex = 0;
+                var COLORS = ['red', 'green', 'blue'];
+                this.el.addEventListener('click', function () {
+                    lastIndex = (lastIndex + 1) % COLORS.length;
+                    this.setAttribute('color', COLORS[lastIndex]);
+                    console.log('Box clicked! New color: ', COLORS[lastIndex]);
+                });
             }
         });
     </script>
